@@ -1,88 +1,43 @@
 %Primero genero los corrales ya que estos necesitan formar un grafo
 %Las posiciones donde van los corrales y los ninos inicialmente puedem ser iguales
-%
-ambiente_inicial(N,M,PS,PO,PN):-(PS+PO+(2*PN))<100,
-                                    ambiente(N,M,T),
-                                        C is N*M,
-                                            cantidad(PN,C,PN_1),
-                                                cantidad(PS,C,PS_1),
-                                                    cantidad(PO,C,PO_1),
-                                                        generar_obstaculos(T,C,RO,PO_1),
-                                                            generar_conexo(RO,corral,PN_1,S),
-                                                                generar(RO,ninos,_,PN_1),
-                                                                    generar(S,sucia,_,PS_1),
-                                                                        generar(RO,robot,_,1),dynamic(estado/1),robot(X,Y),ninos(X,Y),assert(estado(carga)).
-cantidad(P,T,C):-C is (P*T)//100.
-ambiente(N,M,T):-findall((X,Y),
-                            (N_1 is N-1,M_1 is M-1,
-                                numlist(0,N_1,L1),numlist(0,M_1,L2),member(X,L1),member(Y,L2),assert(posicion(X,Y))
-                            ),
-                                T).
-%voy seleccion PS posiciones random de T y les aplica el predicado F a cada una de esas posiciones
-generar(T,_,T,0):-!.
-generar(T,F,Rest,PS):-random_select((X,Y),T,RestT),
-                                C=..[F,X,Y],
-                                assert(C),
-                                    PS_1 is (PS-1),
-                                            generar(RestT,F,Rest,PS_1).
-ady((X,Y),(X_1,Y)):-X_1 is X+1.                                        
-ady((X,Y),(X_1,Y)):-X_1 is X-1.
-ady((X,Y),(X,Y_1)):-Y_1 is Y+1.
-ady((X,Y),(X,Y_1)):-Y_1 is Y-1.
-ady2((X,Y),(X_1,Y)):-X_1 is X+2.                                        
-ady2((X,Y),(X_1,Y)):-X_1 is X-2.
-ady2((X,Y),(X,Y_1)):-Y_1 is Y+2.
-ady2((X,Y),(X,Y_1)):-Y_1 is Y-2.
-generar_obstaculos(T,C,Rest,PO):-NPO is C-PO,
-                                    generar_conexo(T,vacio,NPO,RestC),
-                                        findall((X,Y),vacio(X,Y),Rest),
-                                            retractall(vacio(X,Y)),
-                                                findall((X,Y),(member((X,Y),RestC),assert(obstaculo(X,Y))),_).
 
-generar_conexo(T,_,0,T):-!.
-generar_conexo(T,F,CC,R):-CC_1 is CC-1,
-                    random_select((X,Y),T,T_1),
-                        C=..[F,X,Y],
-                            assert(C),
-                                generar_conexo1(T_1,F,CC_1,R).
-generar_conexo1(T,_,0,T):-!.
-generar_conexo1(T,F,CC,R):-CC_1 is CC-1,
-                                findall((X_1,Y_1),
-                                    %Verificamos todos los (X,Y) que cumplen F que son ady (X_1,Y_1) que no cumplen F
-                                        (XY=..[F,X,Y],XY,ady((X,Y),(X_1,Y_1)),member((X_1,Y_1),T),XY_1=..[F,X_1,Y_1],not(XY_1)),
-                                Adys),
-                                random_select((X_r,Y_r),Adys,_),
-                                    select((X_r,Y_r),T, T_1),
-                                        C=..[F,X_r,Y_r],
-                                            assert(C),
-                                                generar_conexo1(T_1,F,CC_1,R).
-
-swapPos((Xr,Yr),(X,Y),F):-Cr=..[F,Xr,Yr],retract(Cr),C=..[F,X,Y],assert(C).                                           
-movrobot(Xr,Yr,X,Y):-estado(carga),!,not(
-                                            (
-                                                not(ady((Xr,Yr),(X,Y))),
-                                                not(ady2((Xr,Yr),(X,Y)))
-                                            )
-                                        ),
+swapPos((Xr,Yr),(X,Y),F):-Cr=..[F,Xr,Yr],retract(Cr),C=..[F,X,Y],assert(C).
+dejo(1):-retract(estado(carga)).
+dejo(0).
+%este predicado verifica si se puede mover el robot de la pos Xr,Yr a la X,Y en esta posicion
+ifmovrobot(Xr,Yr,X,Y):-estado(carga),!,ady2((Xr,Yr),(X,Y)),
                                         not(obstaculo(X,Y)),
-                                        not(ninos(X,Y)),
-                                            posicion(X,Y),
-                                                swapPos((Xr,Yr),(X,Y),robot),swapPos((Xr,Yr),(X,Y),ninos).
-movrobot(Xr,Yr,X,Y):-ninos(X,Y),!,
-                        ady((Xr,Yr),(X,Y)),
-                            not(obstaculo(X,Y)),
-                                posicion(X,Y),
-                                    swapPos((Xr,Yr),(X,Y),robot),assert(estado(carga)).
-movrobot(Xr,Yr,X,Y):-ady((Xr,Yr),(X,Y)),
-                            not(obstaculo(X,Y)),
-                                posicion(X,Y),
-                                    swapPos((Xr,Yr),(X,Y),robot).
+                                            not(ninos(X,Y)),
+                                                posicion(X,Y).
+ifmovrobot(Xr,Yr,X,Y):-not(estado(carga)),ady((Xr,Yr),(X,Y)),
+                                    not(obstaculo(X,Y)),
+                                        posicion(X,Y).
+
+movrobot(Xr,Yr,X,Y,D):-estado(carga),!,
+                                ifmovrobot(Xr,Yr,X,Y),
+                                    swapPos((Xr,Yr),(X,Y),robot),swapPos((Xr,Yr),(X,Y),ninos),dejo(D).
+movrobot(Xr,Yr,X,Y,_):-ninos(X,Y),!,
+                            ifmovrobot(Xr,Yr,X,Y),
+                                swapPos((Xr,Yr),(X,Y),robot),assert(estado(carga)).
+movrobot(Xr,Yr,X,Y,_):-ifmovrobot(Xr,Yr,X,Y),
+                                swapPos((Xr,Yr),(X,Y),robot).
 
 limpiar(Xr,Yr):-sucia(Xr,Yr),retract(sucia(Xr,Yr)).
 % acciones
-accion(robot(Xr,Yr),limpiar,_,_):-limpiar(Xr,Yr).
-accion(robot(Xr,Yr),moverse,X,Y):-movrobot(Xr,Yr,X,Y).
-%Casillas que pueden estar juntas
-% sucio,niño
-% sucio,robot
-% corral,niño,robot
+accion(limpiar,_):-robot(Xr,Yr),not(estado(carga)),limpiar(Xr,Yr).
+accion(moverse,(X,Y),D):-robot(Xr,Yr),movrobot(Xr,Yr,X,Y,D).
+
+ninos_turno().
+
+% Aqui se implementa el agente
+agente(limpiar,(X,Y),0,_,_):-robot(X,Y),sucia(X,Y),!.
+% Aqui hacemos mover el agente a una posicion random y si es un corral se deja el nino si se esta cargando
+agente(moverse,(X,Y),1,_,_):-robot(Xr,Yr),findall((Xm,Ym),ifmovrobot(Xr,Yr,Xm,Ym),L),random_select((X,Y),L,_),corral(X,Y),!.
+agente(moverse,(X,Y),0,_,_):-robot(Xr,Yr),findall((Xm,Ym),ifmovrobot(Xr,Yr,Xm,Ym),L),random_select((X,Y),L,_).
+%  en el turno falta la talla de los ninos
+turno(T_p,T):-agente(Accion,(X,Y),D,T_p,T),accion(Accion,(X,Y),D).
+simulacion(T,0,T).
+simulacion(T,C,T):-C_1 is C-1,simulacion(T,C_1,0).
+simulacion(T,C,T_p):-turno(T_p,T),T_p_1 is T_p+1,simulacion(T,C,T_p_1).
+
+program(N,M,PS,PO,PN,T):-ambiente_inicial(N,M,PS,PO,PN),simulacion(T,100,0).

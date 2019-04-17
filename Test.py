@@ -2,25 +2,22 @@ from pyswip import Prolog,call
 
 prolog=Prolog()
 prolog.consult("Proyecto.pl")
-N=7
-M=7
-PS=20
-PO=10
+prolog.consult("conexidad.pl")
+prolog.consult("ambiente.pl")
+N=9
+M=9
+PS=10
+PO=20
 PN=30
-# tablero=""
-# list(prolog.query("ambiente({0},{1},T),generar_obstaculos(T,25,R,10)".format(N,M)))
-# for i in range(N):
-#     for j in range(M):
-#         if(bool(list(prolog.query("obstaculo({0},{1})".format(i,j))))):
-#                 tablero+="@@@@@"
-#         else:
-#             tablero+="     "
-#     tablero+="\n"
-# print(tablero)
-# for i in list(prolog.query("vacio(X,Y)")):
-#     print(i)
+def d():
+    return (0,10)
+def Pos(prolog):
+    XY=list(prolog.query("robot(X,Y)"))[0]
+    X=XY['X']
+    Y=XY['Y']
+    return (X,Y)
 def generar_ambiente(prolog):
-    list(prolog.query("ambiente_inicial({0},{1},{2},{3},{4})".format(N,M,PS,PO,PN)))
+    print("ambiente inicial {0}".format(bool(list(prolog.query("ambiente_inicial({0},{1},{2},{3},{4})".format(N,M,PS,PO,PN))))))
 def graficar_ambiente(prolog):
     tablero=""
     for i in range(N):
@@ -56,13 +53,40 @@ def graficar_ambiente(prolog):
                 tablero+="     "
         tablero+="\n"
     print(tablero)
+def Test2Mov(prolog):
+    generar_ambiente(prolog)
+    print("carga al principio {0}".format(bool(list(prolog.query("estado(carga)")))))
+    graficar_ambiente(prolog)
+    XY=list(prolog.query("robot(X,Y)"))[0]
+    X=XY['X']
+    Y=XY['Y']
+    print(bool(list(prolog.query("estado(carga)"))))
+    if(bool(list(prolog.query("movrobot({0},{1},{2},{3},1)".format(X,Y,X+1,Y))))):
+        print("Se pudo 1")
+        if(bool(list(prolog.query("movrobot({0},{1},{2},{3},0)".format(X+1,Y,X+2,Y))))):
+            print("Se pudo 2")
+        else:
+            print("No se pudo 2")
+    else:
+        print("No se pudo 1")
+    graficar_ambiente(prolog)
+def MovimientosDisponibles(prolog):
+    XY=list(prolog.query("robot(X,Y)"))[0]
+    X=XY['X']
+    Y=XY['Y']
+    print("({0},{1})".format(X,Y))
+    for i in list(prolog.query("ifmovrobot({0},{1},X,Y)".format(X,Y))):
+        print(i)
+def ProbarUnSoloTurnoDelAgente(prolog):
+
+    X,Y=Pos(prolog)
+    MovimientosDisponibles(prolog)
+    print(list(prolog.query("turno(1,1)")))
+    graficar_ambiente(prolog)
+    #print(list(prolog.query("accion(moverse,({0},{1}),0)".format(X+1,Y))))
 generar_ambiente(prolog)
 graficar_ambiente(prolog)
-XY=list(prolog.query("robot(X,Y)"))[0]
-X=XY['X']
-Y=XY['Y']
-if(bool(list(prolog.query("movrobot({0},{1},{2},{3})".format(X,Y,X+1,Y))))):
-    print("Se pudo")
-else:
-    print("No se pudo")
-graficar_ambiente(prolog)
+ProbarUnSoloTurnoDelAgente(prolog)
+ProbarUnSoloTurnoDelAgente(prolog)
+#Test2Mov(prolog)
+#MovimientosDisponibles(prolog)
