@@ -104,7 +104,7 @@ simulacion(_,_,_,_,_,_,_,_,_,1):-
     write('Despedido'),
     nl.
 
-program(Agente,N,M,PS,PO,PN,T,C):-
+program(Agente,N,M,PS,PO,PN,T):-
     consult('ambiente.pl'),
     consult('conexidad.pl'),
     consult('agentes.pl'),
@@ -114,7 +114,7 @@ program(Agente,N,M,PS,PO,PN,T,C):-
     consult('kid_move.pl'),
     ambiente_inicial(N,M,PS,PO,PN),
     graficar(),
-    simulacion(Agente,N,M,PS,PO,PN,T,C,0,1),
+    simulacion(Agente,N,M,PS,PO,PN,T,100,0,1),
     p_casillas_sucias(P),
     write('El por ciento de casillas sucias es '),
     write(P),
