@@ -4,11 +4,12 @@ prolog=Prolog()
 prolog.consult("Proyecto.pl")
 prolog.consult("conexidad.pl")
 prolog.consult("ambiente.pl")
-N=9
-M=9
+prolog.consult("clusters.pl")
+N=10
+M=10
 PS=10
-PO=20
-PN=30
+PO=30
+PN=20
 def d():
     return (0,10)
 def Pos(prolog):
@@ -84,9 +85,48 @@ def ProbarUnSoloTurnoDelAgente(prolog):
     print(list(prolog.query("turno(1,1)")))
     graficar_ambiente(prolog)
     #print(list(prolog.query("accion(moverse,({0},{1}),0)".format(X+1,Y))))
+def BFS(prolog):
+    X,Y=Pos(prolog)    
+    print("({0},{1})".format(X,Y))
+    for i in list(prolog.query("bfs(({0},{1}),ninos,Y)".format(X,Y))):
+        for j in i['Y']:
+            print(j)
+def clusters(prolog):
+    L=list(prolog.query("k_means_algorithm(4,R)"))
+    for i in L[0]['R']:
+        print(i)
+    # print(L[0]['R'])
+    for i in list(prolog.query("centroid(X,Y)")):
+        print(i)
+    print('----------------------------------------')
+    for i in list(prolog.query("c((X,Y),(Xl,Yl))")):
+         print(i)
+def BFS3(prolog):
+    L=list(prolog.query("robot(X,Y),bfs3([(X,Y)],[],R)"))
+    print("X : {0}".format(L[0]['X']))
+    print("Y : {0}".format(L[0]['Y']))
+    for i in L[0]['R']:
+        print(i)
+def BFS4(prolog):
+    L=list(prolog.query("robot(X,Y),bfs4(R),length(R,L)"))
+    print("L : {0}".format(L[0]['L']))
+    print("X : {0}".format(L[0]['X']))
+    print("Y : {0}".format(L[0]['Y']))
+    for i in L[0]['R']:
+        print(i)
+    # print('////////////////////////////////////////')
+    # print(bool(list(prolog.query("recalculate_centriodes()"))))
+    # for i in list(prolog.query("centroid(X,Y)")):
+    #     print(i)
+    # print('----------------------------------------')
+    # for i in list(prolog.query("c((X,Y),(Xl,Yl))")):
+    #      print(i)
 generar_ambiente(prolog)
 graficar_ambiente(prolog)
-ProbarUnSoloTurnoDelAgente(prolog)
-ProbarUnSoloTurnoDelAgente(prolog)
+
+# BFS4(prolog)
+clusters(prolog)
+# ProbarUnSoloTurnoDelAgente(prolog)
+# ProbarUnSoloTurnoDelAgente(prolog)
 #Test2Mov(prolog)
 #MovimientosDisponibles(prolog)
