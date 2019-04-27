@@ -79,7 +79,11 @@ turno(Agente,T_p,T,D):-
     % ninos_turno(),
     graficar().
 % El ultimo valor de simulacion determina si se termina la simulacion o no
-simulacion(_,_,_,_,_,_,_,_,_,0):-!.
+simulacion(_,_,_,_,_,_,_,_,_,0):-
+    !,
+    assert(estado(cumplio)),
+    write('El robot limpio todo y ubico a todos los ninos'),
+    nl.
 simulacion(_,_,_,_,_,_,T,0,T,_):-
     !.
 simulacion(Agente,N,M,PS,PO,PN,T,C,T,_):-
@@ -110,5 +114,8 @@ program(Agente,N,M,PS,PO,PN,T,C):-
     consult('kid_move.pl'),
     ambiente_inicial(N,M,PS,PO,PN),
     graficar(),
-    simulacion(Agente,N,M,PS,PO,PN,T,C,0,1).
-    % clear1().
+    simulacion(Agente,N,M,PS,PO,PN,T,C,0,1),
+    p_casillas_sucias(P),
+    write('El por ciento de casillas sucias es '),
+    write(P),
+    clear1().
